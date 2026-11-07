@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shelfmark
 
-## Getting Started
+> Free AI Shopping Readiness Score (0–100) for Shopify stores.
 
-First, run the development server:
+Shelfmark analyzes public Shopify product feeds to evaluate how clearly and accurately conversational AI shopping assistants (ChatGPT Search, Microsoft Copilot, Google AI Mode) can comprehend and recommend a merchant's catalog.
+
+---
+
+## Features
+
+- **Public Feed Inspection:** Automatically fetches and audits public listings from `https://{domain}/products.json` (up to 1,000 items).
+- **Rule-Based Scoring Engine:** Fast, deterministic scoring across 6 weighted signals (no AI hallucinations during grading):
+  1. Title clarity (25%)
+  2. Description depth (25%)
+  3. Key details & specifications (20%)
+  4. Product type & tags (10%)
+  5. Variant & option naming (10%)
+  6. Image coverage & alt text (10%)
+- **"What AI Sees" Comparison:** Side-by-side view for the weakest products comparing what shoppers see vs. what language models extract.
+- **Dynamic Open Graph Share Cards:** Automatic 1200×630 share card generation (`/api/og/[domain]`) for X/Reddit.
+- **Waitlist Email Capture:** Built-in honeypot spam protection, zero third-party tracking, stored directly in Supabase.
+- **AI Rewrite Suggestions (Optional):** Powered by Google Gemini Flash to generate sample factual rewrites with clear bracketed placeholders (`[add material]`).
+
+---
+
+## Tech Stack
+
+- **Framework:** Next.js (App Router) + TypeScript (strict)
+- **Styling:** Tailwind CSS v4 + Custom Design Tokens (light & dark mode)
+- **Database:** Supabase (PostgreSQL) + in-memory resilient fallback
+- **AI:** Google Gemini 1.5 Flash API (optional enhancement)
+- **Testing:** Vitest
+- **Icons:** `lucide-react`
+- **Fonts:** Hanken Grotesk (`next/font`)
+
+---
+
+## Local Development
+
+### 1. Clone & Install Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd shelfmark
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file in the project root:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEY=your_gemini_api_key
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-## Learn More
+### 3. Initialize Supabase Database Tables
 
-To learn more about Next.js, take a look at the following resources:
+Run the SQL statements from [`supabase-schema.sql`](./supabase-schema.sql) in your [Supabase SQL Editor](https://supabase.com/dashboard):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `scans` (cached scans with 24-hour TTL)
+- `waitlist` (email signups)
+- `scan_events` (hourly IP rate limiting)
+- `events` (privacy-friendly event counts)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Run Tests
 
-## Deploy on Vercel
+```bash
+pnpm vitest run
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 5. Start Development Server
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Production Deployment
+
+### Option A: Vercel (Recommended for simplest setup)
+
+1. Push your repository to GitHub.
+2. Import project in [Vercel Dashboard](https://vercel.com/new).
+3. Add environment variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `GEMINI_API_KEY`
+   - `NEXT_PUBLIC_SITE_URL` (your custom domain or vercel.app URL)
+4. Deploy!
+
+### Option B: Cloudflare Pages (OpenNext)
+
+To deploy to Cloudflare Pages using OpenNext:
+
+1. Install the Cloudflare OpenNext adapter:
+   ```bash
+   pnpm add -D @opennextjs/cloudflare wrangler
+   ```
+2. Build with OpenNext:
+   ```bash
+   npx @opennextjs/cloudflare
+   ```
+3. Deploy with Wrangler:
+   ```bash
+   npx wrangler pages deploy .open-next/assets
+   ```
+
+---
+
+## License & Independence
+
+Shelfmark is an independent analysis tool and is not affiliated with or endorsed by Shopify, OpenAI, Google, or Microsoft. Shopify is a registered trademark of Shopify Inc.
