@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link2, Share2, Download, Check, X as XIcon } from "lucide-react";
+import { Link2, Download, Check, X as XIcon, Share2 } from "lucide-react";
 
 interface ShareBlockProps {
   domain: string;
@@ -19,7 +19,7 @@ export function ShareBlock({
   const [copied, setCopied] = useState(false);
   const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
   const reportUrl = `${siteUrl}/report/${domain}`;
-  const shareText = `My store scored ${score}/100 for AI shopping readiness. Check yours:`;
+  const shareText = `My store ${domain} scored ${score}/100 for AI Shopping Readiness. Check your store:`;
 
   const handleCopyLink = async () => {
     try {
@@ -27,7 +27,6 @@ export function ShareBlock({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback
       const input = document.createElement("input");
       input.value = reportUrl;
       document.body.appendChild(input);
@@ -40,7 +39,9 @@ export function ShareBlock({
   };
 
   const handleShareX = () => {
-    const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(reportUrl)}`;
+    const url = `https://x.com/intent/tweet?text=${encodeURIComponent(
+      shareText
+    )}&url=${encodeURIComponent(reportUrl)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -52,54 +53,66 @@ export function ShareBlock({
   };
 
   return (
-    <div className="border border-line rounded-xl overflow-hidden">
-      {/* OG Image Preview */}
-      <div className="bg-mist p-4 border-b border-line">
-        <div className="aspect-[1200/630] max-w-md mx-auto bg-paper rounded-lg overflow-hidden border border-line">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={ogImageUrl}
-            alt={`Shelfmark score card for ${domain}: ${score}/100, ${grade}`}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
+    <div className="glass-panel border border-line rounded-2xl overflow-hidden shadow-lg space-y-4 p-5 sm:p-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-base font-bold text-ink">
+            Official Readiness Card
+          </h3>
+          <p className="text-xs text-muted">
+            Shareable 1200&times;630 image card formatted for X, LinkedIn, and Reddit.
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-surface border border-line hover:border-line-strong text-ink shadow-sm transition-all cursor-pointer"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-pass" aria-hidden="true" />
+                <span>Link Copied</span>
+              </>
+            ) : (
+              <>
+                <Link2 className="w-4 h-4" aria-hidden="true" />
+                <span>Copy link</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareX}
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-surface border border-line hover:border-line-strong text-ink shadow-sm transition-all cursor-pointer"
+          >
+            <XIcon className="w-4 h-4" aria-hidden="true" />
+            <span>Share on X</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadImage}
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-brand hover:bg-brand-hover text-white shadow-md transition-all cursor-pointer"
+          >
+            <Download className="w-4 h-4" aria-hidden="true" />
+            <span>Download PNG</span>
+          </button>
         </div>
       </div>
 
-      {/* Share buttons */}
-      <div className="p-4 flex flex-wrap gap-3">
-        <button
-          onClick={handleCopyLink}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border border-line rounded-lg hover:bg-mist transition-colors"
-        >
-          {copied ? (
-            <>
-              <Check className="w-4 h-4 text-pass" aria-hidden="true" />
-              Copied
-            </>
-          ) : (
-            <>
-              <Link2 className="w-4 h-4" aria-hidden="true" />
-              Copy link
-            </>
-          )}
-        </button>
-
-        <button
-          onClick={handleShareX}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border border-line rounded-lg hover:bg-mist transition-colors"
-        >
-          <XIcon className="w-4 h-4" aria-hidden="true" />
-          Share on X
-        </button>
-
-        <button
-          onClick={handleDownloadImage}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium border border-line rounded-lg hover:bg-mist transition-colors"
-        >
-          <Download className="w-4 h-4" aria-hidden="true" />
-          Download image
-        </button>
+      {/* Card Preview */}
+      <div className="rounded-xl overflow-hidden border border-line bg-surface max-w-lg mx-auto shadow-inner">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={ogImageUrl}
+          alt={`Readiness badge for ${domain}`}
+          className="w-full h-auto object-cover"
+          loading="lazy"
+        />
       </div>
     </div>
   );

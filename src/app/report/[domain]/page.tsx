@@ -2,10 +2,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ScoreBlock } from "@/components/ScoreBlock";
+import { AutoFixBanner } from "@/components/AutoFixBanner";
 import { ProblemList } from "@/components/ProblemList";
 import { AiSeesComparison } from "@/components/AiSeesComparison";
 import { CheckTable } from "@/components/CheckTable";
-import { WaitlistForm } from "@/components/WaitlistForm";
 import { ShareBlock } from "@/components/ShareBlock";
 import { normalizeDomain, fetchProducts } from "@/lib/shopify/fetchProducts";
 import { buildStoreReport } from "@/lib/scoring/aggregate";
@@ -13,7 +13,7 @@ import { extractAiFacts } from "@/lib/scoring/extractFacts";
 import { generateProductSuggestions } from "@/lib/ai/suggest";
 import { getCachedScan, cacheScan } from "@/lib/db/queries";
 import type { ShopifyProduct } from "@/lib/shopify/types";
-import { RotateCcw, Sparkles } from "lucide-react";
+import { RotateCcw, Sparkles, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +54,7 @@ async function getOrGenerateReport(rawDomain: string) {
       const data = JSON.parse(cached.report_json);
       return { report: data, cached: true };
     } catch {
-      // Continue to fresh scan if cache parse failed
+      // Continue to fresh scan
     }
   }
 
@@ -222,16 +222,19 @@ export default async function ReportPage({ params }: ReportPageProps) {
 
   if ("error" in result) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center space-y-6">
+      <div className="mx-auto max-w-2xl px-4 py-24 text-center space-y-6">
+        <div className="w-14 h-14 rounded-2xl bg-fail-bg border border-fail/30 flex items-center justify-center mx-auto text-fail">
+          <RotateCcw className="w-6 h-6" aria-hidden="true" />
+        </div>
         <h1 className="text-2xl font-bold text-ink">Store Scan Failed</h1>
-        <p className="text-base text-muted">{result.error}</p>
+        <p className="text-base text-muted max-w-md mx-auto">{result.error}</p>
         <div className="pt-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand text-white font-medium rounded-lg hover:bg-brand-hover transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-brand hover:bg-brand-hover text-white font-semibold rounded-xl shadow-lg transition-all"
           >
-            <RotateCcw className="w-4 h-4" aria-hidden="true" />
-            Try another store
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+            Try another store address
           </Link>
         </div>
       </div>
@@ -248,36 +251,36 @@ export default async function ReportPage({ params }: ReportPageProps) {
   const ogImageUrl = `/api/og/${encodeURIComponent(report.domain)}`;
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-16">
-      {/* 1. Header */}
+    <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-12">
+      {/* 1. Header Navigation & Store Meta */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
               {report.domain}
             </h1>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-mist border border-line text-muted">
-              {report.productCount} products scanned
+            <span className="text-xs px-3 py-1 rounded-full glass-panel border border-line text-muted font-semibold">
+              {report.productCount} products audited
             </span>
           </div>
-          <p className="mt-1 text-xs text-muted">
-            Scanned on {formattedDate} &bull; Public product listings feed
+          <p className="text-xs text-muted">
+            Audited on {formattedDate} &bull; Public Shopify Product Feed
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-line rounded-lg hover:bg-mist transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold border border-line rounded-xl hover:bg-surface transition-colors"
           >
-            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
-            Scan another
+            <RotateCcw className="w-4 h-4" aria-hidden="true" />
+            Scan another store
           </Link>
         </div>
       </div>
 
-      {/* 2. Score block */}
-      <section className="space-y-4">
+      {/* 2. Score block Showcase */}
+      <section>
         <ScoreBlock
           score={report.overallScore}
           grade={report.grade}
@@ -285,15 +288,26 @@ export default async function ReportPage({ params }: ReportPageProps) {
         />
       </section>
 
-      {/* 3. Top problems */}
+      {/* 3. ⭐ PROMINENT AUTO-FIX HIGHLIGHT BANNER (Right below score) ⭐ */}
+      <section className="animate-score">
+        <AutoFixBanner
+          domain={report.domain}
+          problemCount={report.topProblems.length}
+          highlighted={true}
+        />
+      </section>
+
+      {/* 4. Priority Problems List */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
-            Priority fixes
+          <span className="text-xs font-bold text-brand uppercase tracking-wider">
+            Prioritized Action List
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink mt-1">
+            Top issues blocking AI recommendations
           </h2>
           <p className="mt-1 text-sm text-muted">
-            The highest-impact issues preventing AI assistants from
-            recommending your products.
+            Ranked by total catalog impact (affected listings &times; signal weight).
           </p>
         </div>
 
@@ -303,15 +317,18 @@ export default async function ReportPage({ params }: ReportPageProps) {
         />
       </section>
 
-      {/* 4. What AI sees comparison */}
+      {/* 5. What AI Sees: 5 Weakest Products Comparison */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
-            What AI sees
+          <span className="text-xs font-bold text-brand uppercase tracking-wider">
+            Diagnostic Inspection
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink mt-1">
+            What AI sees in your lowest-scoring products
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Side-by-side view of your 5 weakest products: how shoppers see them
-            vs. the structured facts extracted by AI crawlers.
+            Side-by-side comparison: what shoppers see vs. the structured
+            attributes extracted by AI search crawlers.
           </p>
         </div>
 
@@ -321,18 +338,18 @@ export default async function ReportPage({ params }: ReportPageProps) {
         />
       </section>
 
-      {/* 5. AI Rewrite suggestions (if generated) */}
+      {/* 6. AI Rewrite suggestions (if Gemini is configured) */}
       {report.aiSuggestions && report.aiSuggestions.length > 0 && (
         <section className="space-y-6">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-brand" aria-hidden="true" />
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink">
               AI rewrite suggestions
             </h2>
           </div>
           <p className="text-sm text-muted">
-            Suggested factual enhancements for your lowest-scoring products.
-            Review placeholders before updating your Shopify catalog.
+            Factual enhancements generated for your weakest products. Fill
+            bracketed placeholders like <span className="text-warn font-mono font-semibold">[add material]</span> before publishing to Shopify.
           </p>
 
           <div className="space-y-6">
@@ -353,29 +370,29 @@ export default async function ReportPage({ params }: ReportPageProps) {
               ) => (
                 <div
                   key={i}
-                  className="border border-line rounded-xl p-6 bg-paper space-y-4"
+                  className="glass-panel border border-line rounded-2xl p-6 sm:p-7 space-y-4 shadow-lg"
                 >
                   <div className="flex items-center justify-between pb-3 border-b border-line">
-                    <span className="text-xs font-semibold text-muted uppercase tracking-wider">
+                    <span className="text-xs font-bold text-muted uppercase tracking-wider">
                       Product #{i + 1}: {s.originalTitle}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded bg-brand-light text-brand font-medium">
-                      AI suggestion. Review before using.
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-light text-brand font-semibold">
+                      AI Preview &bull; Review before publishing
                     </span>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div>
-                      <span className="text-xs font-medium text-muted block mb-1">
+                      <span className="text-xs font-semibold text-muted block mb-1">
                         Suggested Title
                       </span>
-                      <p className="text-sm font-semibold text-ink">
+                      <p className="text-base font-bold text-ink">
                         {renderWithPlaceholders(s.suggestion.title)}
                       </p>
                     </div>
 
                     <div>
-                      <span className="text-xs font-medium text-muted block mb-1">
+                      <span className="text-xs font-semibold text-muted block mb-1">
                         Suggested Description
                       </span>
                       <p className="text-sm text-ink leading-relaxed">
@@ -385,8 +402,8 @@ export default async function ReportPage({ params }: ReportPageProps) {
 
                     {s.suggestion.keyDetails?.length > 0 && (
                       <div>
-                        <span className="text-xs font-medium text-muted block mb-1">
-                          Key Specifications
+                        <span className="text-xs font-semibold text-muted block mb-1.5">
+                          Extracted Specifications
                         </span>
                         <ul className="list-disc list-inside text-xs text-ink space-y-1">
                           {s.suggestion.keyDetails.map((kd, idx) => (
@@ -403,42 +420,35 @@ export default async function ReportPage({ params }: ReportPageProps) {
         </section>
       )}
 
-      {/* 6. Full Check Breakdown Table */}
+      {/* 7. Catalog-Wide Check Breakdown */}
       <section className="space-y-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-ink">
-            Check breakdown
+          <span className="text-xs font-bold text-brand uppercase tracking-wider">
+            Full Audit Results
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink mt-1">
+            Check breakdown table
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Catalog-wide results across all six readiness checks.
+            Catalog-wide results across all six deterministic readiness signals.
           </p>
         </div>
 
-        <div className="border border-line rounded-xl bg-paper p-4">
+        <div className="glass-panel border border-line rounded-2xl p-6 shadow-lg">
           <CheckTable checks={report.checkSummaries} />
         </div>
       </section>
 
-      {/* 7. Automatic fixes email capture */}
-      <section className="border border-line rounded-xl p-6 sm:p-8 bg-mist">
-        <div className="max-w-xl space-y-3">
-          <h2 className="text-xl font-bold text-ink">
-            Want these issues fixed automatically?
-          </h2>
-          <p className="text-sm text-muted leading-relaxed">
-            We are building a Shopify app that generates factual, high-clarity
-            rewrites directly inside your Shopify admin. Get notified when it
-            launches.
-          </p>
-          <div className="pt-2">
-            <WaitlistForm domain={report.domain} />
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Share block */}
+      {/* 8. Share Your Score */}
       <section className="space-y-4">
-        <h2 className="text-xl font-bold text-ink">Share your Shelfmark</h2>
+        <div>
+          <span className="text-xs font-bold text-brand uppercase tracking-wider">
+            Shareable Card
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-ink mt-1">
+            Share your Shelfmark score
+          </h2>
+        </div>
         <ShareBlock
           domain={report.domain}
           score={report.overallScore}
@@ -457,7 +467,7 @@ function renderWithPlaceholders(text: string) {
       return (
         <span
           key={index}
-          className="bg-warn-bg text-warn px-1.5 py-0.5 rounded border border-warn/30 font-mono text-xs font-semibold"
+          className="bg-warn-bg text-warn px-2 py-0.5 rounded border border-warn/30 font-mono text-xs font-bold inline-block"
         >
           {part}
         </span>

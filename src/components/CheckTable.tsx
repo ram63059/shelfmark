@@ -17,52 +17,50 @@ interface CheckTableProps {
 export function CheckTable({ checks }: CheckTableProps) {
   return (
     <div className="table-scroll">
-      <table className="w-full text-sm">
+      <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-line">
-            <th className="text-left py-3 pr-4 font-medium text-muted text-xs">
-              Check
-            </th>
-            <th className="text-center py-3 px-3 font-medium text-muted text-xs w-16">
-              Weight
-            </th>
-            <th className="text-center py-3 px-3 font-medium text-muted text-xs w-16">
-              <span className="flex items-center justify-center gap-1">
-                <CheckCircle className="w-3.5 h-3.5 text-pass" aria-hidden="true" />
+          <tr className="border-b border-line text-xs font-semibold text-muted uppercase tracking-wider">
+            <th className="py-3.5 pr-4">Check Signal</th>
+            <th className="py-3.5 px-3 text-center w-20">Weight</th>
+            <th className="py-3.5 px-3 text-center w-24">
+              <span className="inline-flex items-center gap-1 text-pass font-bold">
+                <CheckCircle className="w-3.5 h-3.5" aria-hidden="true" />
                 Pass
               </span>
             </th>
-            <th className="text-center py-3 px-3 font-medium text-muted text-xs w-16">
-              <span className="flex items-center justify-center gap-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-warn" aria-hidden="true" />
+            <th className="py-3.5 px-3 text-center w-24">
+              <span className="inline-flex items-center gap-1 text-warn font-bold">
+                <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
                 Warn
               </span>
             </th>
-            <th className="text-center py-3 px-3 font-medium text-muted text-xs w-16">
-              <span className="flex items-center justify-center gap-1">
-                <XCircle className="w-3.5 h-3.5 text-fail" aria-hidden="true" />
+            <th className="py-3.5 px-3 text-center w-24">
+              <span className="inline-flex items-center gap-1 text-fail font-bold">
+                <XCircle className="w-3.5 h-3.5" aria-hidden="true" />
                 Fail
               </span>
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-line">
           {checks.map((check) => (
-            <tr key={check.name} className="border-b border-line last:border-b-0">
-              <td className="py-3 pr-4">
-                <p className="font-medium text-ink">{check.name}</p>
-                <p className="text-xs text-muted mt-0.5">{check.description}</p>
+            <tr key={check.name} className="hover:bg-surface/50 transition-colors">
+              <td className="py-4 pr-4">
+                <p className="font-bold text-ink">{check.name}</p>
+                <p className="text-xs text-muted mt-0.5 max-w-lg leading-relaxed">
+                  {check.description}
+                </p>
               </td>
-              <td className="text-center py-3 px-3 tabular-nums text-muted">
+              <td className="py-4 px-3 text-center tabular-nums font-semibold text-muted">
                 {check.weight}%
               </td>
-              <td className="text-center py-3 px-3 tabular-nums text-pass">
+              <td className="py-4 px-3 text-center tabular-nums font-bold text-pass">
                 {check.passCount}
               </td>
-              <td className="text-center py-3 px-3 tabular-nums text-warn">
+              <td className="py-4 px-3 text-center tabular-nums font-bold text-warn">
                 {check.warnCount}
               </td>
-              <td className="text-center py-3 px-3 tabular-nums text-fail">
+              <td className="py-4 px-3 text-center tabular-nums font-bold text-fail">
                 {check.failCount}
               </td>
             </tr>
